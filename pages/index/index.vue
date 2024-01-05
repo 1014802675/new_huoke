@@ -1,0 +1,1064 @@
+<template>
+	<view class="jiangqie-top-bg" :style="background?'background-image: url(' + background + ');':''">
+
+		<uni-nav-bar :fixed="true" :statusBar="true" backgroundColor="#E0301F">
+			<template slot="left">
+				<view class="jiangqie-logo">
+					<image :src="logo"></image>
+				</view>
+			</template>
+			<view class="jiangqie-btn-search" @click="handlerSearchClick">
+				<uni-icons class="input-uni-icon" type="search" size="18" color="#f8b8b8" />
+				<text>点我搜索</text>
+			</view>
+		</uni-nav-bar>
+
+		<scroll-view scroll-x scroll-with-animation class="tab-view" :scroll-left="scrollLeft">
+			<view v-for="(item, index) in topNav" :key="index"
+				:class="'tab-bar-item ' + (currentTab==index ? 'active' : '')" :data-current="index"
+				@tap.stop="swichNav">
+				<text class="tab-bar-title">{{item.name}}</text>
+			</view>
+			<view class="tab-bar-item">
+				<text class="tab-bar-title">.</text>
+			</view>
+		</scroll-view>
+
+		<view class="tab-more" @tap.stop="handlerTabMoreClick">
+			<image src="/static/images/tabmorered.png" mode="aspectFill"></image>
+		</view>
+
+		<view class="tab-content" style="padding-top: 120rpx;">
+			<template v-if="currentTab==0">
+
+				<!--banner-->
+				<view v-if="slide && slide.length>0" class="jiangqie-banner-box">
+					<swiper indicator-dots="true" autoplay="true" interval="5000" duration="150"
+						class="jiangqie-banner-swiper" :circular="true" previous-margin="15rpx" next-margin="15rpx"
+						@change="handlerSlideChange">
+						<swiper-item v-for="(item, index) in slide" :key="index" class="jiangqie-banner-item"
+							:data-link="item.url" @tap.stop="handlerArticleClickBanner">
+							<image :src="item.picture"
+								:class="'jiangqie-slide-image ' + ((current==index || (current==undefined && index==0))?'':'jiangqie-banner-scale')"
+								mode="aspectFill"></image>
+						</swiper-item>
+					</swiper>
+				</view>
+				<!--banner-->
+
+				<view class="container">
+					<view style="padding-top: 0.5rem;"></view>
+					<!--图标模块 可单独设置背景色、背景图、图标图-->
+			
+				
+					<!--新闻列表——热门-->
+					<view v-if="hot && hot.length>0" class="jiangqie-news-view jiangqie-news-hot">
+						<view class="jiangqie-news-type">
+							热门推荐<text>滑动查看</text>
+						</view>
+						<scroll-view class="jiangqie-news-scroll-x-box" scroll-x="true">
+							<view v-for="(item, index) in hot" :key="index" class="jiangqie-hot-scroll-box"
+								:data-id="item.id" @tap.stop="handlerArticleClick">
+								<image :src="item.thumbnail" mode="aspectFill" class="jiangqie-hot-scroll-image">
+								</image>
+								<view class="jiangqie-hot-scroll-title">{{item.title}}</view>
+							</view>
+						</scroll-view>
+					</view>
+
+					<!--新闻列表——常规-->
+					<view class="jiangqie-news-view">
+						<view v-if="postsLast && postsLast.length>0" class="jiangqie-news-type">
+							最新文章
+						</view>
+						<template v-for="(item, index) in postsLast">
+							
+							<view :key="index" class="jiangqie-news-block" :data-id="item.id"
+								@tap.stop="handlerArticleClick">
+								
+								<image v-if="item.img" :src="item.img" mode="aspectFill" class="jiangqie-news-image"></image>
+								<view class="jiangqie-news-text">
+									<view class="jiangqie-news-title">
+										{{item.title}}
+									</view>
+									<view v-if="item.desc" class="jiangqie-news-describe">{{item.desc}}</view>
+									<view class="jiangqie-news-info">
+										<text v-for="(item2, index2) in item.tags" :key="index2"
+											class="jiangqie-news-tag">{{item2}}</text>
+										<text class="jiangqie-news-time">{{item.create_time}}</text>
+										<view class="jiangqie-news-cmt">
+											<image src="/static/images/ctm2.png" mode="aspectFill"></image>
+											<text>{{item.num}}</text>
+										</view>
+									</view>
+								</view>
+							</view>
+						</template>
+					</view>
+				</view>
+				<!--加载loadding-->
+				<jiangqie-loadmore :visible="loaddingLast"></jiangqie-loadmore>
+		
+				<!--加载loadding-->
+			</template>
+
+			<template v-else>
+				<view class="container">
+					<view class="jiangqie-news-view">
+						<template v-for="(item, index) in posts">
+							
+							<view :key="index" class="jiangqie-news-block" :data-id="item.id"
+								@tap.stop="handlerArticleClick">
+								<view  v-if="item.img" class="jiangqie-news-image">
+									<image  :src="item.img" mode="aspectFill" ></image>
+								</view>
+								<view class="jiangqie-news-text">
+									<view class="jiangqie-news-title">
+										{{item.title}}
+									</view>
+									<view v-if="item.desc" class="jiangqie-news-describe">{{item.desc}}</view>
+									<view class="jiangqie-news-info">
+										<text v-for="(item2, index2) in item.tags" :key="index2"
+											class="jiangqie-news-tag">{{item.item2}}</text>
+										<text class="jiangqie-news-time">{{item.create_time}}</text>
+										<view class="jiangqie-news-cmt">
+											<image src="/static/images/ctm2.png" mode="aspectFill"></image>
+											<text>{{item.num}}</text>
+										</view>
+									</view>
+								</view>
+							</view>
+						</template>
+					</view>
+				</view>
+				<!--加载loadding-->
+				<jiangqie-loadmore :visible="loadding"></jiangqie-loadmore>
+				<jiangqie-nomore :visible="!pullUpOn"></jiangqie-nomore>
+				<!--加载loadding-->
+			</template>
+		</view>
+		
+		<view v-if="pop_ad" class="zhugie-pop-cover">
+			<view class="" @click="clickPopAd" class="zhuige-pop-box">
+				<image mode="aspectFit" :src="pop_ad.image"></image>
+				<view>
+					<uni-icons @click="clickPopAdClose" type="close" size="32" color="#FFFFFF"></uni-icons>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	/*
+	 * 酱茄小程序开源版
+	 * 作者: 追格
+	 * 文档：https://www.zhuige.com/docs/zxfree.html
+	 * github: https://github.com/zhuige-com/jiangqie_kafei
+	 * gitee: https://gitee.com/zhuige_com/jiangqie_kafei
+	 * Copyright © 2020-2023 www.zhuige.com All rights reserved.
+	 */
+	const Constants = require("@/utils/constants.js");
+	const Api = require("@/utils/api.js");
+	const Util = require("@/utils/util.js");
+	const Rest = require("@/utils/rest.js");
+
+	import JiangqieLoadmore from "@/components/loadmore/loadmore";
+	import JiangqieNomore from "@/components/nomore/nomore";
+	import uniNavBar from '@/components/uni-nav-bar/uni-nav-bar.vue'
+
+	export default {
+		components: {
+			JiangqieLoadmore,
+			JiangqieNomore,
+			uniNavBar
+		},
+		
+		data() {
+			this.bd_title = undefined;
+			this.bd_description = undefined;
+			this.bd_keywords = undefined;
+			this.interstitialAd = undefined;
+
+			return {
+				logo: '',
+				background: undefined,
+
+				//顶部导航
+				topNav: [{
+					id: 0,
+					name: '首页'
+				}],
+				currentTab: 0,
+
+				//幻灯片
+				slide: [],
+
+				//图片导航
+				iconNav: [],
+
+				//热门文章
+				hot: [],
+
+				//热门tab
+				postsLast: [],
+				loaddingLast: false,
+				pullUpOnLast: true,
+
+				//其他tab
+				posts: [],
+				loadding: false,
+				pullUpOn: true,
+
+				//列表模式
+				listMode: 3,
+
+				scrollLeft: "",
+				current: "",
+				actives: undefined,
+				
+				// 弹窗广告
+				pop_ad: undefined,
+
+				// 分享标题
+				share_title: undefined,
+				// 分享缩略图
+				share_thumb: undefined,
+			};
+		},
+		mounted(){
+			Rest.get(Api.JIANGQIE_SETTING_HOME).then(res => {
+				let logo = "/static/images/logo.png";
+				if (res.data.logo && res.data.logo.length > 0) {
+					logo = res.data.logo;
+				}
+			
+				this.logo = logo;
+				this.topNav = this.topNav.concat(res.data.top_nav);
+				this.iconNav = res.data.icon_nav;
+				this.slide = res.data.slide;
+				
+				this.hot = res.data.hot;
+				this.listMode = res.data.list_mode;
+				this.background = res.data.background
+			
+			
+			console.log( res.data.share_title);
+			    uni.setStorageSync('jiangqie_title', res.data.share_title);
+			
+				if (res.data.share_title && res.data.share_title.length > 0) {
+					getApp().globalData.appName = res.data.title;
+			
+					// #ifdef MP-BAIDU
+					this.bd_title = res.data.share_title;
+					this.bd_description = res.data.description;
+					this.bd_keywords = res.data.keywords;
+					swan.setPageInfo({
+						title: this.bd_title,
+						description: this.bd_description,
+						keywords: this.bd_keywords,
+					});
+					// #endif
+				}
+			
+				//插屏广告
+				// #ifdef MP-WEIXIN
+				if (res.data.wx_ad && wx.createInterstitialAd) {
+					setTimeout(() => {
+						this.interstitialAd = wx.createInterstitialAd({
+							adUnitId: res.data.wx_ad
+						})
+						this.interstitialAd.onLoad(() => {
+							// console.log('onLoad event emit')
+							this.interstitialAd.show().catch((err) => {
+								console.error(err)
+							})
+						})
+						this.interstitialAd.onError((err) => {
+							// console.log('onError event emit', err)
+						})
+						this.interstitialAd.onClose((res) => {
+							// console.log('onClose event emit', res)
+						})
+					}, 1000 * parseInt(res.data.wx_ad_delay))
+				}
+				// #endif
+				
+				// 弹框
+				this.pop_ad = Util.getPopAd(res.data.pop_ad, Constants.ZHUIGE_INDEX_MAXAD_LAST_TIME);
+			
+				if (res.data.share_title) {
+					this.share_title = res.data.share_title;
+				}
+			
+				if (res.data.share_thumb) {
+					this.share_thumb = res.data.share_thumb;
+				}
+			});
+		},
+		onLoad(options) {
+			uni.showLoading();
+			setTimeout(() => {
+				uni.hideLoading();
+						
+			}, 400)
+			
+		uni.hideShareMenu()
+			//加载文章
+			this.loadPostLast(true);
+		},
+
+		onShow() {
+			
+			// #ifdef MP-BAIDU
+			if (this.bd_title) {
+				swan.setPageInfo({
+					title: this.bd_title,
+					description: this.bd_description,
+					keywords: this.bd_keywords,
+				});
+			}
+			// #endif
+		},
+
+		onReachBottom() {
+			if (this.currentTab == 0) {
+				if (!this.pullUpOnLast) {
+					return;
+				}
+
+				this.loadPostLast(false);
+			} else {
+				if (!this.pullUpOn) {
+					return;
+				}
+
+				this.loadPost(false);
+			}
+		},
+
+		onShareAppMessage() {
+		
+			var user_id =  uni.getStorageSync('jiangqie_user_id');
+				console.log(user_id);
+			var params = {};
+			if(user_id){
+				let params = {
+					title: getApp().globalData.appName,
+					path: 'pages/index/index?u='+user_id
+				};
+			}else{
+				let params = {
+					title: getApp().globalData.appName,
+					path: 'pages/index/index?u=0'
+				};
+			}
+			
+
+			if (this.share_title) {
+				params.title = this.share_title;
+			}
+
+			if (this.share_thumb) {
+				params.imageUrl = this.share_thumb;
+			}
+
+			return params;
+		},
+
+		// #ifdef MP-WEIXIN
+		onShareTimeline() {
+			console.log(1111)
+			let title = getApp().globalData.appName;
+			if (this.share_title) {
+				title = this.share_title;
+			}
+			var params = {};
+			var user_id =  uni.getStorageSync('jiangqie_user_id');
+			if(user_id){
+				let params = {
+					title: getApp().globalData.appName,
+					path: 'pages/index/index?u='+user_id
+				};
+			}else{
+				let params = {
+					title: getApp().globalData.appName,
+					path: 'pages/index/index?u=0'
+				};
+			}
+			
+			
+			return params;
+		},
+		// #endif
+
+		methods: {
+			//nav start----
+			handlerSearchClick(e) {
+				uni.navigateTo({
+					url: '/pages/search/search'
+				});
+			},
+
+			
+			//点击轮播
+			handlerArticleClickBanner(e){
+					let link = e.currentTarget.dataset.link;
+					if(link){
+						Util.openLink(link);
+					}
+					
+			},
+			//slide start----
+			handlerSlideChange(e) {
+				this.current = e.detail.current;
+			},
+			//slide end----
+
+			//tab -- start
+			/**
+			 * 点击 切换分类
+			 */
+			swichNav(e) {
+				let cur = e.currentTarget.dataset.current;
+				if (this.currentTab == cur) {
+					return false;
+				}
+
+				this.background = (cur == 0 && this.slide && this.slide.length > 0 ? Api.JIANGQIE_BG_INDEX : '');
+				this.currentTab = cur;
+
+				if (cur !== 0) {
+					this.loadPost(true);
+				}
+			},
+
+			/**
+			 * 点击 打开 分类页面
+			 */
+			handlerTabMoreClick(e) {
+				uni.switchTab({
+					url: '/pages/categories/categories'
+				});
+			},
+			//tab -- end
+
+			/**
+			 * 点击 ICON
+			 */
+			handlerIconNavClick(e) {
+				let link = e.currentTarget.dataset.link;
+				Util.openLink(link);
+			},
+
+			/**
+			 * 点击 活动图
+			 */
+			handlerActiveClick(e) {
+				let link = e.currentTarget.dataset.link;
+				Util.openLink(link);
+			},
+
+			/**
+			 * 点击文章
+			 */
+			handlerArticleClick(e) {
+				let post_id = e.currentTarget.dataset.id;
+				uni.navigateTo({
+					url: '/pages/article/article?post_id=' + post_id
+				});
+			},
+
+			/**
+			 * 加载 最新文章
+			 */
+			loadPostLast(refresh) {
+				this.loaddingLast = true;
+				let offset = 0;
+
+				if (!refresh) {
+					offset = this.postsLast.length;
+				}
+
+				Rest.get(Api.JIANGQIE_POSTS_LAST, {
+					'offset': offset
+				}).then(res => {
+					this.loaddingLast = false;
+					this.postsLast = (refresh ? res.data : this.postsLast.concat(res.data));
+					this.pullUpOnLast = (res.data.length >= Constants.JQ_PER_PAGE_COUNT)
+				});
+			},
+
+			/**
+			 * 加载 分类文章
+			 */
+			loadPost(refresh) {
+				this.loadding = true;
+				let offset = 0;
+				if (!refresh) {
+					offset = this.posts.length;
+				}
+
+				Rest.get(Api.JIANGQIE_POSTS_CATEGORY, {
+					'offset': offset,
+					'cat_id': this.topNav[this.currentTab].id
+				}).then(res => {
+					this.loadding = false;
+					this.posts = (refresh ? res.data : this.posts.concat(res.data));
+					this.pullUpOn = res.data.length >= Constants.JQ_PER_PAGE_COUNT
+				});
+			},
+			
+			/**
+			 * 点击弹出窗口
+			 */
+			clickPopAd() {
+				wx.setStorageSync(Constants.ZHUIGE_INDEX_MAXAD_LAST_TIME, new Date().getTime())
+				Util.openLink(this.pop_ad.link);
+				this.pop_ad = false;
+			},
+			
+			/**
+			 * 关闭弹出窗口
+			 */
+			clickPopAdClose() {
+				this.pop_ad = false;
+				wx.setStorageSync(Constants.ZHUIGE_INDEX_MAXAD_LAST_TIME, new Date().getTime())
+			},
+		}
+	};
+</script>
+
+<style lang="scss">
+	.jiangqie-logo {
+		display: flex;
+		align-items: center;
+		margin-right: 15rpx;
+
+		image {
+			height: 48rpx;
+			width: 128rpx;
+		}
+	}
+
+	.jiangqie-btn-search {
+		display: flex;
+		align-items: center;
+		width: 80%;
+		height: 32px;
+		padding-left: 20rpx;
+		background: #d5544f;
+		border-radius: 16px;
+		color: #f8b8b8;
+		font-size: 28rpx;
+	}
+
+	.container {
+		display: flex;
+		flex-direction: column;
+		box-sizing: border-box;
+		padding-bottom: env(safe-area-inset-bottom);
+		background: #FFF;
+	}
+
+	.jiangqie-top-bg {
+		background-repeat: no-repeat;
+		background-size: 100% auto;
+		background-position-y: 100rpx;
+	}
+
+	/*banner*/
+	.jiangqie-banner-box {
+		width: 100%;
+	}
+
+	.jiangqie-banner-swiper {
+		width: 100%;
+		height: 320rpx;
+	}
+
+	.jiangqie-banner-item {
+		padding: 0 16rpx;
+		box-sizing: border-box;
+	}
+
+	.jiangqie-slide-image {
+		width: 100%;
+		height: 320rpx;
+		display: block;
+		border-radius: 20rpx;
+		transition: all 0.1s linear;
+		box-shadow: 3rpx 3rpx 10rpx rgba(0, 0, 0, 0.2);
+	}
+
+	.jiangqie-banner-scale {
+		transform: scaleY(0.9);
+		transform-origin: center center;
+	}
+
+	.jiangqie-banner-swiper .wx-swiper-dot {
+		width: 8rpx;
+		height: 8rpx;
+		display: inline-flex;
+		background: none;
+		justify-content: space-between;
+	}
+
+	.jiangqie-banner-swiper .wx-swiper-dot::before {
+		content: '';
+		flex-grow: 1;
+		background: rgba(255, 255, 255, 0.3);
+		border-radius: 16rpx;
+		overflow: hidden;
+	}
+
+	.jiangqie-banner-swiper .wx-swiper-dot-active::before {
+		background: #FFF;
+	}
+
+	.jiangqie-banner-swiper .wx-swiper-dot.wx-swiper-dot-active {
+		width: 16rpx;
+	}
+
+
+	/** jiangqie-news-icon **/
+	.jiangqie-news-icon {
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		font-size: 24rpx;
+		color: #555;
+		margin-top: 10rpx;
+	}
+
+	.jiangqie-news-iconbox {
+		width: 20%;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-direction: column;
+		margin-bottom: 10rpx;
+	}
+
+	.jiangqie-news-iconimg {
+		height: 100rpx;
+		width: 100rpx;
+		border-radius: 16rpx;
+	}
+
+	.jiangqie-news-iconbox text {
+		line-height: 46rpx;
+	}
+
+	/** jiangqie-news-lightbox **/
+	.jiangqie-news-view {
+		overflow: hidden;
+		padding: 0 30rpx;
+	}
+
+	.jiangqie-news-lightbox {
+		margin-bottom: 20rpx;
+		float: left;
+		position: relative;
+		border-radius: 20rpx;
+	}
+
+	.jiangqie-news-lightbox-main {
+		height: 300rpx;
+		width: 320rpx;
+		// background: linear-gradient(to right bottom, #7FD3FF, #2BB1F2);
+		box-shadow: 5rpx 5rpx 20rpx rgba(0, 0, 0, 0.2);
+	}
+
+	.jiangqie-news-lightbox-side,
+	.jiangqie-news-lightbox-side2 {
+		height: 141rpx;
+		width: 350rpx;
+		text-align: left;
+		margin-left: 20rpx;
+		// background: linear-gradient(to right bottom, #9788FF, #735CFF);
+		box-shadow: 5rpx 5rpx 20rpx rgba(0, 0, 0, 0.2);
+	}
+
+	.jiangqie-news-lightbox-side2 {
+		// background: linear-gradient(to right bottom, #FF91C2, #FF539E);
+	}
+
+	.jiangqie-news-lightimg {
+		height: 300rpx;
+		width: 320rpx;
+		border-radius: 8rpx;
+	}
+
+	.jiangqie-news-lightbox-side .jiangqie-news-lightimg,
+	.jiangqie-news-lightbox-side2 .jiangqie-news-lightimg {
+		height: 141rpx;
+		width: 350rpx;
+		position: relative;
+	}
+
+
+	.jiangqie-news-lighttext {
+		position: absolute;
+		left: 0rpx;
+		bottom: 0rpx;
+		text-align: left;
+		background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(55,55,55,0.4));
+		overflow: hidden;
+		z-index: 9;
+		width: 280rpx;
+		border-radius: 0 0 8rpx 8rpx;
+		height: 90rpx;
+		line-height: 110rpx;
+		padding: 0 20rpx;
+	}
+
+	.jiangqie-news-lightbox-side .jiangqie-news-lighttext,
+	.jiangqie-news-lightbox-side2 .jiangqie-news-lighttext {
+		width: 310rpx;
+	}
+
+	.jiangqie-news-lihgttitle {
+		color: #FFF;
+		font-size: 26rpx;
+		font-weight: 400;
+		line-height: 70rpx;
+	}
+
+
+	/** jiangqie-news-block **/
+
+	.jiangqie-news-type {
+		font-size: 36rpx;
+		font-weight: 500;
+		color: #555;
+		padding: 16rpx 0 0;
+	}
+
+	.jiangqie-news-type text {
+		float: right;
+		font-size: 24rpx;
+		font-weight: 200;
+		color: #999;
+		margin-right: 30rpx;
+	}
+
+	.jiangqie-news-block {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		border-bottom: 1rpx solid #DDD;
+		padding: 24rpx 0;
+		flex-direction: row-reverse;
+	}
+
+	.jiangqie-news-block:last-child {
+		border: none;
+	}
+
+	.jiangqie-news-stick-image {
+		position: absolute;
+		height: 60rpx;
+		width: 60rpx;
+		left: 0rpx;
+		top: 0rpx;
+	}
+
+	.jiangqie-news-image {
+		flex: 0 0 260rpx;
+		height: 200rpx;
+		width: 260rpx;
+		border-radius: 8rpx;
+	}
+
+	.jiangqie-news-image image {
+		height: 100%;
+		width: 100%;
+		border-radius: 8rpx;
+	}
+
+	.jiangqie-news-text {
+		text-align: left;
+		padding-right: 20rpx;
+		width: 100%;
+		overflow: hidden;
+	}
+
+	.jiangqie-news-title {
+		font-size: 32rpx;
+		color: #333;
+		font-weight: 600;
+		line-height: 44rpx;
+		max-height: 88rpx;
+		overflow: hidden;
+		margin-bottom: 12rpx;
+	}
+
+	.jiangqie-news-no-excerpt {
+		margin-bottom: 30rpx;
+		height: 100rpx;
+	}
+
+	.jiangqie-news-describe {
+		font-size: 26rpx;
+		color: #999;
+		line-height: 30rpx;
+		max-height: 30rpx;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		margin-bottom: 18rpx;
+	}
+
+	.jiangqie-news-info {
+		font-size: 22rpx;
+		color: #BBB;
+		height: 26rpx;
+		display: flex;
+		align-items: center;
+	}
+
+	.jiangqie-news-cmt {
+		margin-right: 12rpx;
+		display: flex;
+		align-items: center;
+	}
+
+	.jiangqie-news-cmt image {
+		height: 24rpx;
+		width: 24rpx;
+		margin-right: 8rpx;
+		border-radius: 10rpx;
+	}
+
+	.jiangqie-news-tag {
+		line-height: 32rpx;
+		height: 30rpx;
+		padding: 0 16rpx;
+		border: 1rpx solid #AAA;
+		border-radius: 26rpx;
+		margin-right: 12rpx;
+		display: none;
+	}
+
+	.jiangqie-news-time {
+		float: left;
+		line-height: 30rpx;
+		height: 30rpx;
+		vertical-align: middle;
+		padding-right: 10rpx;
+	}
+
+	.image-wide {
+		padding-right: 0;
+		flex-wrap: wrap;
+	}
+
+	.image-wide .jiangqie-news-image {
+		flex: none;
+		height: 320rpx;
+		width: 690rpx;
+		margin-right: 0rpx;
+		margin-bottom: 10rpx;
+	}
+
+	.image-wide .jiangqie-news-text {
+		padding-left: 0;
+	}
+
+	.image-wide .jiangqie-news-title {
+		height: auto;
+	}
+
+	.jiangqie-news-hot {
+		padding: 10rpx 0;
+		border-bottom: 12rpx solid #F3F3F3;
+		border-top: 12rpx solid #F3F3F3;
+	}
+
+	.jiangqie-news-hot .jiangqie-news-type {
+		padding-left: 30rpx;
+		padding-bottom: 20rpx;
+	}
+
+	.jiangqie-news-scroll-x-box {
+		height: 290rpx;
+		white-space: nowrap;
+	}
+
+	::-webkit-scrollbar {
+		width: 0;
+		height: 0;
+		color: transparent;
+	}
+
+	.jiangqie-hot-scroll-box {
+		width: 440rpx;
+		height: 290rpx;
+		margin-left: 20rpx;
+		display: inline-block;
+		position: relative;
+	}
+
+	.jiangqie-hot-scroll-box:first-child {
+		margin-left: 30rpx;
+	}
+
+	.jiangqie-hot-scroll-box:last-child {
+		margin-right: 30rpx;
+	}
+
+	.jiangqie-hot-scroll-image {
+		width: 440rpx;
+		height: 220rpx;
+		border-radius: 8rpx;
+		margin-bottom: 10rpx;
+	}
+
+	.jiangqie-hot-scroll-title {
+		position: absolute;
+		left: 0rpx;
+		bottom: 0rpx;
+		text-align: left;
+		background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(22,22,22,0.4));
+		z-index: 9;
+		width: 400rpx;
+		border-radius: 0 0 8rpx 8rpx;
+		height: 90rpx;
+		line-height: 110rpx;
+		padding: 0 20rpx;
+		color: #FFFFFF;
+		white-space: normal;
+		overflow: hidden;
+		position: absolute;
+	}
+
+	.tab-more {
+		position: fixed;
+		right: 0;
+		height: 100rpx;
+		width: 120rpx;
+		z-index: 99;
+	}
+
+	.tab-more image {
+		height: 100rpx;
+		width: 120rpx;
+	}
+
+	::-webkit-scrollbar {
+		width: 0;
+		height: 0;
+		color: transparent;
+	}
+
+	.tab-view::before {
+		content: '';
+		position: absolute;
+		-webkit-transform: scaleY(0.5);
+		transform: scaleY(0.5);
+		bottom: 0;
+		right: 0;
+		left: 0;
+	}
+
+	.tab-view {
+		width: 100%;
+		height: 100rpx;
+		overflow: hidden;
+		box-sizing: border-box;
+		position: fixed;
+		left: 0;
+		z-index: 99;
+		background: #E0301F;
+		white-space: nowrap;
+	}
+
+	.tab-bar-item {
+		padding: 0;
+		height: 100rpx;
+		min-width: 80rpx;
+		line-height: 100rpx;
+		margin: 0 28rpx;
+		display: inline-block;
+		text-align: center;
+		box-sizing: border-box;
+	}
+
+	.tab-bar-title {
+		height: 100rpx;
+		line-height: 100rpx;
+		font-size: 28rpx;
+		color: #F8B8B8;
+		font-weight: 400;
+	}
+
+
+
+	.active .tab-bar-title {
+		color: #FFF !important;
+		font-size: 32rpx;
+		font-weight: bold;
+	}
+
+	/*tabbar end*/
+
+	.jiangqie-news-title text {
+		font-size: 22rpx;
+		font-weight: 300;
+		color: #FFF;
+		background: #F30;
+		float: left;
+		width: 60rpx;
+		height: 36rpx;
+		margin-top: 6rpx;
+		line-height: 36rpx;
+		text-align: center;
+		border-radius: 8rpx;
+		margin-right: 12rpx;
+	}
+	
+	/**
+	 * 弹窗 start
+	 */
+	.zhugie-pop-cover {
+		position: fixed;
+		height: 100%;
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: rgba(0, 0, 0, .6);
+		z-index: 998;
+		top: 0;
+		left: 0;
+	}
+	
+	.zhuige-pop-box {
+		width: 600rpx;
+		height: 600rpx;
+		position: relative;
+		text-align: center;
+	}
+	
+	.zhuige-pop-box image {
+		height: 100%;
+		width: 100%;
+	}
+	
+	.zhuige-pop-box view {
+		position: absolute;
+		bottom: -48rpx;
+		height: 48rpx;
+		width: 48rpx;
+		z-index: 999;
+		left: 50%;
+		margin-left: -24rpx;
+	}
+	/**
+	 * 弹窗 end
+	 */
+</style>

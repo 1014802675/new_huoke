@@ -1,0 +1,65 @@
+
+.content {
+	position: fixed;
+	height: 100%;
+	width: 100%;
+	overflow-y: scroll;
+}
+.jiangqie-info-form-box {
+	padding: 20rpx;
+	margin-bottom: 160rpx;
+}
+.jiangqie-verify-box {
+	padding: 80rpx 120rpx;
+	text-align: center;
+}
+.jiangqie-verify-info {
+	padding-bottom: 80rpx;
+}
+.jiangqie-verify-info button,
+.jiangqie-verify-info button::after {
+	border: none;
+	background: none;
+}
+.jiangqie-verify-line {
+	padding: 30rpx 0;
+	border-bottom: 1rpx solid #DDDDDD;
+}
+.jiangqie-verify-line image {
+	height: 180rpx;
+	width: 180rpx;
+	border-radius: 50%;
+	margin-bottom: 10rpx;
+}
+.jiangqie-verify-text {
+	font-size: 30rpx;
+	font-weight: 500;
+}
+.jiangqie-verify-line input {
+	font-size: 30rpx;
+	height: 72rpx;
+	line-height: 72rpx;
+}
+.jiangqie-verify-button {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+.jiangqie-verify-button view {
+	width: 360rpx;
+	text-align: center;
+	height: 96rpx;
+	line-height: 96rpx;
+	border-radius: 96rpx;
+	font-size: 28rpx;
+	font-weight: 400;
+	color: #999999;
+	margin-bottom: 40rpx;
+}
+.jiangqie-verify-button view:nth-child(1) {
+	color: #FFFFFF;
+	background: #010101;
+	font-size: 32rpx;
+}
+
